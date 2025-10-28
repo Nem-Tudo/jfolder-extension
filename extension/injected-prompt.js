@@ -27,7 +27,7 @@ module.exports = {
 - If a requested file path is invalid, produce a clear error object (see Error Handling).
 
 6) OUTPUT REQUIREMENTS (CRITICAL)
-- When asked to *return a .jfolder*, respond **only** with the JSON object (the .jfolder content). Do not include any explanations, IA PROMPT, commentary, or extra text before or after the JSON. The response body must be parseable as JSON.
+- IMPORTANT!! When asked to *return a .jfolder*, respond **only** with the JSON object (the .jfolder content). Do not include any explanations, IA PROMPT, commentary, THE JSON MARK, or extra text before or after the JSON. The response body MUS BE parseable as JSON.
 - Wrap the JSON in standard JSON encoding (UTF-8). The response MIME type is assumed \`application/json\` where possible.
 
 7) EXTRACT / UNPACK (consumer instructions for clarity)
