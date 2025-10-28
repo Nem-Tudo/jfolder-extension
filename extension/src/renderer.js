@@ -1,15 +1,21 @@
+// renderer.js
+
 let currentData = null;
-let currentPath = '/';
 let fileName = '';
+let expandedFolders = new Set();
+let selectedPath = null;
 
 // Listener para quando um arquivo é aberto externamente
 window.electronAPI.onOpenFile((data) => {
     try {
         currentData = JSON.parse(data.content);
         fileName = data.fileName;
-        renderFileTree();
+        expandedFolders.clear();
+        selectedPath = null;
+        renderInterface();
     } catch (err) {
         alert('Erro ao ler arquivo JFolder: ' + err.message);
+        console.error('Erro detalhado:', err);
     }
 });
 
@@ -19,134 +25,162 @@ async function openFile() {
         try {
             currentData = JSON.parse(result.content);
             fileName = result.fileName;
-            renderFileTree();
+            expandedFolders.clear();
+            selectedPath = null;
+            renderInterface();
         } catch (err) {
             alert('Erro ao ler arquivo JFolder: ' + err.message);
+            console.error('Erro detalhado:', err);
         }
     }
 }
 
-function renderFileTree() {
+function renderInterface() {
     if (!currentData) return;
 
     document.getElementById('extractBtn').disabled = false;
-    document.getElementById('breadcrumb').style.display = 'block';
 
-    const items = getItemsInPath(currentPath);
-    const content = document.getElementById('content');
+    const mainContent = document.getElementById('mainContent');
+    mainContent.innerHTML = `
+        <div class="sidebar">
+            <div class="tree-container" id="treeContainer"></div>
+        </div>
+        <div class="viewer-panel">
+            <div class="viewer-header" id="viewerHeader">
+                Nenhum arquivo selecionado
+            </div>
+            <div class="viewer-content" id="viewerContent">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📄</div>
+                    <div>Selecione um arquivo para visualizar</div>
+                </div>
+            </div>
+        </div>
+    `;
 
-    if (items.folders.length === 0 && items.files.length === 0) {
-        content.innerHTML = '<div class="empty-state"><div class="icon">📂</div><p>Pasta vazia</p></div>';
-        return;
-    }
-
-    let html = '<ul class="file-list">';
-
-    // Folders first
-    items.folders.forEach(folder => {
-        html += `
-            <li class="file-item" onclick="navigateToFolder('${folder}')">
-                <div class="file-icon">📁</div>
-                <div class="file-name">${folder}</div>
-            </li>
-        `;
-    });
-
-    // Then files
-    items.files.forEach(file => {
-        const fullPath = currentPath === '/' ? `/${file}` : `${currentPath}/${file}`;
-        html += `
-            <li class="file-item" onclick="previewFile('${fullPath.replace(/'/g, "\\'")}')">
-                <div class="file-icon">${getFileIcon(file)}</div>
-                <div class="file-name">${file}</div>
-            </li>
-        `;
-    });
-
-    html += '</ul>';
-    content.innerHTML = html;
-
-    updateBreadcrumb();
+    renderTree();
 }
 
-function getItemsInPath(path) {
-    const folders = new Set();
-    const files = [];
-
-    const normalizedPath = path === '/' ? '' : path;
+function buildTree() {
+    const tree = { name: '/', path: '/', type: 'folder', children: {} };
 
     Object.keys(currentData).forEach(filePath => {
-        if (filePath.startsWith(normalizedPath + '/') || (normalizedPath === '' && filePath.startsWith('/'))) {
-            let relativePath = filePath.substring(normalizedPath.length);
-            if (relativePath.startsWith('/')) relativePath = relativePath.substring(1);
+        const parts = filePath.split('/').filter(p => p);
+        let current = tree;
 
-            const parts = relativePath.split('/');
-
-            if (parts.length > 1) {
-                folders.add(parts[0]);
-            } else if (parts[0]) {
-                files.push(parts[0]);
+        parts.forEach((part, index) => {
+            if (index === parts.length - 1) {
+                // É um arquivo
+                if (!current.children[part]) {
+                    current.children[part] = {
+                        name: part,
+                        path: filePath,
+                        type: 'file'
+                    };
+                }
+            } else {
+                // É uma pasta
+                if (!current.children[part]) {
+                    current.children[part] = {
+                        name: part,
+                        path: '/' + parts.slice(0, index + 1).join('/'),
+                        type: 'folder',
+                        children: {}
+                    };
+                }
+                current = current.children[part];
             }
-        }
+        });
     });
 
-    return {
-        folders: Array.from(folders).sort(),
-        files: files.sort()
-    };
+    return tree;
 }
 
-function navigateToFolder(folder) {
-    currentPath = currentPath === '/' ? `/${folder}` : `${currentPath}/${folder}`;
-    renderFileTree();
-}
+function renderTree() {
+    const tree = buildTree();
+    const container = document.getElementById('treeContainer');
 
-function navigateTo(path) {
-    currentPath = path;
-    renderFileTree();
-}
-
-function updateBreadcrumb() {
-    const pathElement = document.getElementById('currentPath');
-    if (currentPath === '/') {
-        pathElement.innerHTML = '';
+    // Verificar se está vazio
+    if (Object.keys(tree.children).length === 0) {
+        container.innerHTML = `
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #666; font-size: 12px;">
+                <div style="font-size: 48px; margin-bottom: 12px; opacity: 0.5;">📂</div>
+                <div>Nenhum arquivo no JFolder</div>
+            </div>
+        `;
         return;
     }
 
-    const parts = currentPath.split('/').filter(p => p);
     let html = '';
-    let accPath = '';
 
-    parts.forEach((part, i) => {
-        accPath += '/' + part;
-        const isLast = i === parts.length - 1;
-        if (isLast) {
-            html += ` / <span style="color:#333">${part}</span>`;
-        } else {
-            html += ` / <span onclick="navigateTo('${accPath}')">${part}</span>`;
+    function renderNode(node, level = 0) {
+        const isExpanded = expandedFolders.has(node.path);
+        const isSelected = selectedPath === node.path;
+
+        if (level > 0) {
+            const indent = '<span class="indent"></span>'.repeat(level - 1);
+            const icon = node.type === 'folder'
+                ? (isExpanded ? '▼' : '▶')
+                : '  ';
+
+            html += `
+                <div class="tree-item ${node.type} ${isSelected ? 'selected' : ''}" 
+                     onclick="handleItemClick('${escapePath(node.path)}', '${node.type}')"
+                     data-path="${escapePath(node.path)}">
+                    ${indent}
+                    <span class="tree-arrow">${icon}</span>
+                    <span class="tree-icon">${getFileIcon(node.name, node.type)}</span>
+                    <span class="tree-label">${escapeHtml(node.name)}</span>
+                </div>
+            `;
         }
-    });
 
-    pathElement.innerHTML = html;
+        if (node.type === 'folder' && (level === 0 || isExpanded)) {
+            const children = Object.values(node.children).sort((a, b) => {
+                if (a.type === b.type) return a.name.localeCompare(b.name);
+                return a.type === 'folder' ? -1 : 1;
+            });
+
+            children.forEach(child => renderNode(child, level + 1));
+        }
+    }
+
+    renderNode(tree);
+    container.innerHTML = html;
 }
 
-function previewFile(filePath) {
+function handleItemClick(path, type) {
+    if (type === 'folder') {
+        if (expandedFolders.has(path)) {
+            expandedFolders.delete(path);
+        } else {
+            expandedFolders.add(path);
+        }
+        renderTree();
+    } else {
+        selectedPath = path;
+        renderTree();
+        displayFile(path);
+    }
+}
+
+function displayFile(filePath) {
     const content = currentData[filePath];
     const fileName = filePath.split('/').pop();
 
-    const contentDiv = document.getElementById('content');
-    contentDiv.innerHTML = `
-        <div style="margin-bottom: 20px;">
-            <button class="btn btn-secondary" onclick="renderFileTree()">← Voltar</button>
-        </div>
-        <h3 style="margin-bottom: 15px;">${getFileIcon(fileName)} ${fileName}</h3>
-        <div class="file-preview">
-            <pre>${escapeHtml(content)}</pre>
-        </div>
-    `;
+    const header = document.getElementById('viewerHeader');
+    const viewer = document.getElementById('viewerContent');
+
+    header.innerHTML = `${escapeHtml(fileName)}`;
+
+    viewer.innerHTML = `<pre>${escapeHtml(content)}</pre>`;
 }
 
-function getFileIcon(fileName) {
+function getFileIcon(fileName, type) {
+    if (type === 'folder') {
+        return '📁';
+    }
+
     const ext = fileName.split('.').pop().toLowerCase();
     const icons = {
         'js': '📄',
@@ -160,9 +194,16 @@ function getFileIcon(fileName) {
         'jpeg': '🖼️',
         'gif': '🖼️',
         'pdf': '📕',
-        'zip': '🗜️'
+        'zip': '🗜️',
+        'xml': '📰',
+        'yml': '⚙️',
+        'yaml': '⚙️'
     };
     return icons[ext] || '📄';
+}
+
+function escapePath(path) {
+    return path.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 }
 
 function escapeHtml(text) {

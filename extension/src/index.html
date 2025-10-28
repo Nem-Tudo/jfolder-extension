@@ -14,8 +14,8 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f5f5;
-            color: #333;
+            background: #f0f0f0;
+            color: #000;
             overflow: hidden;
         }
 
@@ -23,44 +23,36 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
-            background: white;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px 30px;
-            border-bottom: 3px solid #5568d3;
-        }
-
-        .header h1 {
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        .header .author {
-            font-size: 12px;
-            opacity: 0.9;
+            background: #f0f0f0;
         }
 
         .toolbar {
-            padding: 15px 30px;
-            background: #fafafa;
-            border-bottom: 1px solid #e0e0e0;
+            background: #f0f0f0;
+            border-bottom: 1px solid #a0a0a0;
+            padding: 4px 6px;
             display: flex;
-            gap: 10px;
-            align-items: center;
+            gap: 3px;
         }
 
         .btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
+            padding: 4px 16px;
+            border: 1px solid #a0a0a0;
+            background: #e0e0e0;
             cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s;
+            font-size: 11px;
+            border-radius: 0;
+            color: #000;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: #d0d0d0;
+            border-color: #808080;
+        }
+
+        .btn:active:not(:disabled) {
+            background: #c0c0c0;
+            border: 1px solid #606060;
         }
 
         .btn:disabled {
@@ -68,159 +60,185 @@
             cursor: not-allowed;
         }
 
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-primary:hover:not(:disabled) {
-            background: #5568d3;
-        }
-
-        .btn-secondary {
-            background: white;
-            color: #667eea;
-            border: 1px solid #667eea;
-        }
-
-        .btn-secondary:hover:not(:disabled) {
-            background: #f0f0f0;
-        }
-
-        .breadcrumb {
-            padding: 15px 30px;
-            background: white;
-            border-bottom: 1px solid #e0e0e0;
-            font-size: 14px;
-            color: #666;
-        }
-
-        .breadcrumb span {
-            cursor: pointer;
-            color: #667eea;
-        }
-
-        .breadcrumb span:hover {
-            text-decoration: underline;
-        }
-
-        .content {
+        .main-content {
+            display: flex;
             flex: 1;
-            padding: 20px 30px;
+            overflow: hidden;
+            background: #fff;
+            border: 1px solid #a0a0a0;
+            margin: 4px;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: #fff;
+            border-right: 1px solid #d0d0d0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tree-container {
+            flex: 1;
             overflow-y: auto;
+            overflow-x: hidden;
         }
 
-        .file-list {
-            list-style: none;
-        }
-
-        .file-item {
-            padding: 12px 15px;
-            border-bottom: 1px solid #f0f0f0;
+        .tree-item {
+            padding: 2px 4px;
             cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+            font-size: 11px;
             display: flex;
             align-items: center;
-            gap: 12px;
-            transition: background 0.2s;
+            gap: 2px;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
         }
 
-        .file-item:hover {
-            background: #f8f8f8;
+        .tree-item:hover {
+            background: #e5e5e5;
         }
 
-        .file-icon {
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
+        .tree-item.selected {
+            background: #0078d7;
+            color: #fff;
         }
 
-        .file-name {
-            flex: 1;
-            font-size: 14px;
+        .tree-arrow {
+            width: 12px;
+            text-align: center;
+            font-size: 8px;
+            flex-shrink: 0;
         }
 
-        .file-preview {
-            padding: 20px;
-            background: #f9f9f9;
-            border-radius: 4px;
-            border: 1px solid #e0e0e0;
-            margin-top: 20px;
-        }
-
-        .file-preview pre {
-            font-family: 'Consolas', 'Monaco', monospace;
+        .tree-icon {
+            width: 16px;
+            text-align: center;
             font-size: 13px;
-            line-height: 1.5;
-            overflow-x: auto;
+            flex-shrink: 0;
+        }
+
+        .tree-label {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .indent {
+            display: inline-block;
+            width: 14px;
+            flex-shrink: 0;
+        }
+
+        .viewer-panel {
+            flex: 1;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .viewer-header {
+            padding: 4px 8px;
+            border-bottom: 1px solid #d0d0d0;
+            background: #f5f5f5;
+            font-size: 11px;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+        }
+
+        .viewer-content {
+            flex: 1;
+            overflow: auto;
+            padding: 8px;
+            background: #fff;
+        }
+
+        .viewer-content pre {
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 11px;
+            line-height: 1.4;
             white-space: pre-wrap;
             word-wrap: break-word;
+            margin: 0;
         }
 
         .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #666;
+            font-size: 11px;
         }
 
-        .empty-state .icon {
+        .empty-state-icon {
             font-size: 48px;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
+            opacity: 0.4;
         }
 
-        .drop-zone {
-            border: 2px dashed #ccc;
-            border-radius: 8px;
-            padding: 40px;
+        .welcome-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #666;
+            font-size: 11px;
             text-align: center;
-            color: #999;
-            margin: 20px auto;
-            max-width: 500px;
-            cursor: pointer;
-            transition: all 0.3s;
+            padding: 20px;
         }
 
-        .drop-zone:hover {
-            border-color: #667eea;
-            color: #667eea;
+        .welcome-screen-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.3;
         }
 
-        .drop-zone.active {
-            border-color: #667eea;
-            background: #f0f4ff;
+        .welcome-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #000;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 16px;
+            height: 16px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f0f0f0;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c0c0c0;
+            border: 1px solid #a0a0a0;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a0a0a0;
+        }
+
+        ::-webkit-scrollbar-corner {
+            background: #f0f0f0;
         }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <div class="header">
-            <h1>📁 JFolder Viewer</h1>
-            <div class="author">Por Nem Tudo</div>
-        </div>
-
         <div class="toolbar">
-            <button class="btn btn-primary" onclick="openFile()">Abrir JFolder</button>
-            <button class="btn btn-secondary" id="extractBtn" onclick="extractFiles()" disabled>Extrair
-                Arquivos</button>
+            <button class="btn" onclick="openFile()">Abrir</button>
+            <button class="btn" id="extractBtn" onclick="extractFiles()" disabled>Extrair</button>
         </div>
 
-        <div id="breadcrumb" class="breadcrumb" style="display:none;">
-            <span onclick="navigateTo('/')">📁 Raiz</span>
-            <span id="currentPath"></span>
-        </div>
-
-        <div class="content" id="content">
-            <div class="empty-state">
-                <div class="icon">📦</div>
-                <h2>Bem-vindo ao JFolder Viewer</h2>
-                <p>Abra um arquivo .jfolder para visualizar seu conteúdo</p>
-                <div class="drop-zone" onclick="openFile()" id="dropZone">
-                    <div style="font-size: 32px; margin-bottom: 10px;">⬆️</div>
-                    <div>Clique aqui para abrir um arquivo .jfolder</div>
-                </div>
+        <div class="main-content" id="mainContent">
+            <div class="welcome-screen">
+                <div class="welcome-screen-icon">📁</div>
+                <div class="welcome-title">JFolder Viewer</div>
+                <div>Abra um arquivo .jfolder para começar</div>
             </div>
         </div>
     </div>

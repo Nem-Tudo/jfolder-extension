@@ -1,6 +1,6 @@
 {
     "name": "jfolder",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Visualizador e gerenciador de arquivos JFolder",
     "main": "src/main.js",
     "author": "Nem Tudo",
@@ -36,8 +36,12 @@
         "nsis": {
             "oneClick": false,
             "allowToChangeInstallationDirectory": true,
-            "createDesktopShortcut": true,
+            "createDesktopShortcut": false,
+            "warningsAsErrors": false,
             "createStartMenuShortcut": true,
+            "perMachine": false,
+            "allowElevation": true,
+            "runAfterFinish": false,
             "shortcutName": "JFolder",
             "include": "installer/installer.nsh"
         },

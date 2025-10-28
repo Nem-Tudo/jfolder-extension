@@ -1,7 +1,8 @@
+// main.js
+
 const { app, BrowserWindow, ipcMain, dialog, Menu, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
-const AdmZip = require('adm-zip');
 
 let mainWindow;
 
@@ -101,18 +102,31 @@ function openFileDialog() {
     });
 }
 
-function createFromFolder() {
-    dialog.showOpenDialog(mainWindow, {
-        properties: ['openDirectory']
-    }).then(result => {
-        if (!result.canceled && result.filePaths.length > 0) {
-            const folderPath = result.filePaths[0];
-            const jfolderData = {};
+function createFromFolder(folderPath = null) {
+    if (folderPath && fs.existsSync(folderPath)) {
+        // Criar JFolder diretamente da pasta fornecida
+        processFolder(folderPath);
+    } else {
+        // Mostrar diálogo para selecionar pasta
+        dialog.showOpenDialog(mainWindow, {
+            properties: ['openDirectory']
+        }).then(result => {
+            if (!result.canceled && result.filePaths.length > 0) {
+                processFolder(result.filePaths[0]);
+            }
+        });
+    }
+}
 
-            function readDirectory(dirPath, baseDir) {
-                const items = fs.readdirSync(dirPath);
+function processFolder(folderPath) {
+    const jfolderData = {};
 
-                items.forEach(item => {
+    function readDirectory(dirPath, baseDir) {
+        try {
+            const items = fs.readdirSync(dirPath);
+
+            items.forEach(item => {
+                try {
                     const fullPath = path.join(dirPath, item);
                     const relativePath = path.relative(baseDir, fullPath).replace(/\\/g, '/');
                     const stat = fs.statSync(fullPath);
@@ -120,28 +134,37 @@ function createFromFolder() {
                     if (stat.isDirectory()) {
                         readDirectory(fullPath, baseDir);
                     } else {
-                        const content = fs.readFileSync(fullPath, 'utf8');
-                        jfolderData['/' + relativePath] = content;
+                        try {
+                            const content = fs.readFileSync(fullPath, 'utf8');
+                            jfolderData['/' + relativePath] = content;
+                        } catch (err) {
+                            console.error(`Erro ao ler arquivo ${fullPath}:`, err);
+                        }
                     }
-                });
-            }
-
-            readDirectory(folderPath, folderPath);
-
-            // Salvar arquivo
-            dialog.showSaveDialog(mainWindow, {
-                defaultPath: path.basename(folderPath) + '.jfolder',
-                filters: [{ name: 'JFolder Files', extensions: ['jfolder'] }]
-            }).then(saveResult => {
-                if (!saveResult.canceled) {
-                    fs.writeFileSync(saveResult.filePath, JSON.stringify(jfolderData, null, 2));
-                    dialog.showMessageBox(mainWindow, {
-                        type: 'info',
-                        title: 'Sucesso',
-                        message: 'JFolder criado com sucesso!',
-                        detail: `Arquivo salvo em: \n${saveResult.filePath} `
-                    });
+                } catch (err) {
+                    console.error(`Erro ao processar item ${item}:`, err);
                 }
+            });
+        } catch (err) {
+            console.error(`Erro ao ler diretório ${dirPath}:`, err);
+        }
+    }
+
+    readDirectory(folderPath, folderPath);
+
+    // Salvar arquivo
+    dialog.showSaveDialog(mainWindow, {
+        defaultPath: path.basename(folderPath) + '.jfolder',
+        filters: [{ name: 'JFolder Files', extensions: ['jfolder'] }]
+    }).then(saveResult => {
+        if (!saveResult.canceled) {
+            fs.writeFileSync(saveResult.filePath, JSON.stringify(jfolderData, null, 2));
+            dialog.showMessageBox(mainWindow, {
+                type: 'info',
+                title: 'Sucesso',
+                message: 'JFolder criado com sucesso!',
+                detail: `Arquivo salvo em: \n${saveResult.filePath}`,
+                buttons: ['OK']
             });
         }
     });
@@ -220,9 +243,26 @@ app.on('open-file', (event, filePath) => {
 });
 
 app.whenReady().then(() => {
-    // Verificar se foi passado um arquivo como argumento
-    const filePath = process.argv.find(arg => arg.endsWith('.jfolder'));
-    createWindow(filePath);
+    // Processar argumentos da linha de comando
+    const args = process.argv.slice(process.defaultApp ? 2 : 1);
+
+    // Verificar se é um comando --create
+    const createIndex = args.indexOf('--create');
+    if (createIndex !== -1 && args[createIndex + 1]) {
+        const folderPath = args[createIndex + 1];
+
+        // Criar janela e depois processar a pasta
+        createWindow();
+
+        // Aguardar a janela estar pronta
+        mainWindow.webContents.on('did-finish-load', () => {
+            createFromFolder(folderPath);
+        });
+    } else {
+        // Verificar se foi passado um arquivo .jfolder
+        const filePath = args.find(arg => arg.endsWith('.jfolder'));
+        createWindow(filePath);
+    }
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
