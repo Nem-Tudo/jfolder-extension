@@ -34,7 +34,10 @@ function createWindow(filePath = null) {
     // Abrir arquivo se foi passado como argumento
     if (filePath && fs.existsSync(filePath)) {
         mainWindow.webContents.on('did-finish-load', () => {
-            const content = fs.readFileSync(filePath, 'utf8');
+
+            let content = fs.readFileSync(filePath, 'utf8');
+            if (content.includes("---/JSON/---")) content = content.split("---/JSON/---")[1];
+
             const fileName = path.basename(filePath, '.jfolder');
             mainWindow.webContents.send('open-file', { content, fileName });
         });
@@ -95,7 +98,10 @@ function openFileDialog() {
     }).then(result => {
         if (!result.canceled && result.filePaths.length > 0) {
             const filePath = result.filePaths[0];
-            const content = fs.readFileSync(filePath, 'utf8');
+
+            let content = fs.readFileSync(filePath, 'utf8');
+            if (content.includes("---/JSON/---")) content = content.split("---/JSON/---")[1];
+
             const fileName = path.basename(filePath, '.jfolder');
             mainWindow.webContents.send('open-file', { content, fileName });
         }
@@ -135,7 +141,9 @@ function processFolder(folderPath) {
                         readDirectory(fullPath, baseDir);
                     } else {
                         try {
-                            const content = fs.readFileSync(fullPath, 'utf8');
+                            let content = fs.readFileSync(fullPath, 'utf8');
+                            if (content.includes("---/JSON/---")) content = content.split("---/JSON/---")[1];
+
                             jfolderData['/' + relativePath] = content;
                         } catch (err) {
                             console.error(`Erro ao ler arquivo ${fullPath}:`, err);
@@ -154,11 +162,11 @@ function processFolder(folderPath) {
 
     // Salvar arquivo
     dialog.showSaveDialog(mainWindow, {
-        defaultPath: path.basename(folderPath) + '.jfolder',
+        defaultPath: path.join(path.dirname(folderPath), path.basename(folderPath) + '.jfolder'),
         filters: [{ name: 'JFolder Files', extensions: ['jfolder'] }]
     }).then(saveResult => {
         if (!saveResult.canceled) {
-            fs.writeFileSync(saveResult.filePath, JSON.stringify(jfolderData, null, 2));
+            fs.writeFileSync(saveResult.filePath, `--- INSTRUCTIONS FOR IA ---\n${require("../injected-prompt.js").prompt}\n--- END OF INSTRUCTIONS ---\n---/JSON/---\n${JSON.stringify(jfolderData, null, 2)}`);
             dialog.showMessageBox(mainWindow, {
                 type: 'info',
                 title: 'Sucesso',
@@ -222,7 +230,10 @@ ipcMain.handle('select-file', async () => {
 
     if (!result.canceled && result.filePaths.length > 0) {
         const filePath = result.filePaths[0];
-        const content = fs.readFileSync(filePath, 'utf8');
+
+        let content = fs.readFileSync(filePath, 'utf8');
+        if (content.includes("---/JSON/---")) content = content.split("---/JSON/---")[1];
+
         const fileName = path.basename(filePath, '.jfolder');
         return { content, fileName };
     }
@@ -234,7 +245,10 @@ ipcMain.handle('select-file', async () => {
 app.on('open-file', (event, filePath) => {
     event.preventDefault();
     if (mainWindow) {
-        const content = fs.readFileSync(filePath, 'utf8');
+
+        let content = fs.readFileSync(filePath, 'utf8');
+        if (content.includes("---/JSON/---")) content = content.split("---/JSON/---")[1];
+
         const fileName = path.basename(filePath, '.jfolder');
         mainWindow.webContents.send('open-file', { content, fileName });
     } else {

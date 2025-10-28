@@ -1,6 +1,6 @@
 {
     "name": "jfolder",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "Visualizador e gerenciador de arquivos JFolder",
     "main": "src/main.js",
     "author": "Nem Tudo",
