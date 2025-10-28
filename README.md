@@ -1,5 +1,7 @@
 # .jfolder extension
 
+[Download Installer](/installer/JFolder%20Setup%201.0.1.exe)
+
 Allow AIs to return folders with different files using the .jfolder extension!
 
 Viewer / Convert
