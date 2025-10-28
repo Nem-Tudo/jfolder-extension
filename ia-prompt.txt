@@ -15,10 +15,6 @@ You are an assistant that must produce and read files in the "jfolder" format. A
 
 3) CONTENT TYPES & ENCODING
 - Text files: value is a JSON string with exact text content. Preserve all characters including newlines (\n), tabs (\t), and other escapes using valid JSON escaping. Example: "console.log(\"hi\")\n".
-- Binary or non-UTF-8 files: use an object value with this exact shape:
-  {"_encoding": "base64", "data": "<base64-string>"}
-  - `_encoding` must be exactly "base64".
-  - `data` must be the base64 encoding of the raw bytes.
 - Do NOT invent other encoding names. If a file is text, prefer plain JSON string values.
 
 4) JSON ESCAPING
