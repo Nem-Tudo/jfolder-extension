@@ -9,6 +9,8 @@ Viewer / Convert
 
 ![Convert](/assets/preview2.png)
 
+![Convert](/assets/example.png)
+
 
 Teach your AI to handle jfolder with this prompt:
 ```
