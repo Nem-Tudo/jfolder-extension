@@ -1,0 +1,4 @@
+{
+  "/somefolder/file.txt": "content",
+  "/src/start.js": "console.log(\"started\")"
+}

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JFolder Viewer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: white;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            border-bottom: 3px solid #5568d3;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .header .author {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .toolbar {
+            padding: 15px 30px;
+            background: #fafafa;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #5568d3;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 1px solid #667eea;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #f0f0f0;
+        }
+
+        .breadcrumb {
+            padding: 15px 30px;
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .breadcrumb span {
+            cursor: pointer;
+            color: #667eea;
+        }
+
+        .breadcrumb span:hover {
+            text-decoration: underline;
+        }
+
+        .content {
+            flex: 1;
+            padding: 20px 30px;
+            overflow-y: auto;
+        }
+
+        .file-list {
+            list-style: none;
+        }
+
+        .file-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: background 0.2s;
+        }
+
+        .file-item:hover {
+            background: #f8f8f8;
+        }
+
+        .file-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .file-name {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .file-preview {
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            border: 1px solid #e0e0e0;
+            margin-top: 20px;
+        }
+
+        .file-preview pre {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .drop-zone {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            color: #999;
+            margin: 20px auto;
+            max-width: 500px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .drop-zone:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .drop-zone.active {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📁 JFolder Viewer</h1>
+            <div class="author">Por Nem Tudo</div>
+        </div>
+
+        <div class="toolbar">
+            <button class="btn btn-primary" onclick="openFile()">Abrir JFolder</button>
+            <button class="btn btn-secondary" id="extractBtn" onclick="extractFiles()" disabled>Extrair
+                Arquivos</button>
+        </div>
+
+        <div id="breadcrumb" class="breadcrumb" style="display:none;">
+            <span onclick="navigateTo('/')">📁 Raiz</span>
+            <span id="currentPath"></span>
+        </div>
+
+        <div class="content" id="content">
+            <div class="empty-state">
+                <div class="icon">📦</div>
+                <h2>Bem-vindo ao JFolder Viewer</h2>
+                <p>Abra um arquivo .jfolder para visualizar seu conteúdo</p>
+                <div class="drop-zone" onclick="openFile()" id="dropZone">
+                    <div style="font-size: 32px; margin-bottom: 10px;">⬆️</div>
+                    <div>Clique aqui para abrir um arquivo .jfolder</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="renderer.js"></script>
+</body>
+
+</html>

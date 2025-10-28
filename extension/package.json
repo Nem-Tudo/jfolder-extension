@@ -1,0 +1,56 @@
+{
+    "name": "jfolder",
+    "version": "1.0.0",
+    "description": "Visualizador e gerenciador de arquivos JFolder",
+    "main": "src/main.js",
+    "author": "Nem Tudo",
+    "license": "MIT",
+    "scripts": {
+        "start": "electron .",
+        "build": "electron-builder build --win --publish never",
+        "build-installer": "electron-builder build --win --x64 --publish never"
+    },
+    "build": {
+        "appId": "com.nemtudo.jfolder",
+        "productName": "JFolder",
+        "win": {
+            "target": [
+                {
+                    "target": "nsis",
+                    "arch": [
+                        "x64"
+                    ]
+                }
+            ],
+            "icon": "build/icon.ico",
+            "fileAssociations": [
+                {
+                    "ext": "jfolder",
+                    "name": "JFolder Archive",
+                    "description": "JFolder Archive File",
+                    "icon": "build/icon.ico",
+                    "role": "Editor"
+                }
+            ]
+        },
+        "nsis": {
+            "oneClick": false,
+            "allowToChangeInstallationDirectory": true,
+            "createDesktopShortcut": true,
+            "createStartMenuShortcut": true,
+            "shortcutName": "JFolder",
+            "include": "installer/installer.nsh"
+        },
+        "directories": {
+            "output": "dist",
+            "buildResources": "build"
+        }
+    },
+    "devDependencies": {
+        "electron": "^28.0.0",
+        "electron-builder": "^24.9.1"
+    },
+    "dependencies": {
+        "adm-zip": "^0.5.10"
+    }
+}
