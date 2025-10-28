@@ -1,0 +1,4 @@
+{
+  "/somefolder/file.txt": "content",
+  "/src/start.bat": "pause"
+}
